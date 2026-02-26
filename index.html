@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comment Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #F5F3EE;
+    --surface: #FFFFFF;
+    --border: #DDD9D0;
+    --text: #1A1916;
+    --text-muted: #7A776E;
+    --accent: #2D5A3D;
+    --accent-light: #E8F0EB;
+    --accent2: #C17F3B;
+    --danger: #C0392B;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  header {
+    max-width: 720px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
+  header span { font-size: 0.78rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+  .main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+  .blocks { display: flex; flex-direction: column; gap: 12px; }
+
+  .block {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    animation: slideIn 0.18s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .block-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .block-num {
+    background: var(--accent); color: #fff;
+    font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500;
+    width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .block-title { font-size: 0.85rem; font-weight: 600; color: var(--accent); flex: 1; }
+  .block-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 1.1rem; line-height: 1;
+    padding: 2px 4px; border-radius: 4px; transition: color 0.15s, background 0.15s;
+  }
+  .block-remove:hover { color: var(--danger); background: #fdecea; }
+
+  select, input[type="text"] {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    background: var(--surface); color: var(--text);
+    outline: none; transition: border-color 0.15s;
+  }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A776E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+
+  .input-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+  .input-wrap { margin-top: 10px; }
+
+  .add-section {
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .add-section p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; }
+  .type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .type-btn {
+    padding: 7px 13px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    cursor: pointer; color: var(--text); font-weight: 500;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .type-btn:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+
+  .output-area {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 18px 14px;
+  }
+  .output-area h2 {
+    font-size: 0.75rem; font-weight: 600; color: var(--accent);
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .output-text {
+    font-family: 'DM Mono', monospace; font-size: 0.88rem; line-height: 1.65;
+    color: var(--text); background: var(--accent-light); border-radius: 6px;
+    padding: 12px 14px; min-height: 52px; white-space: pre-wrap; word-break: break-word;
+  }
+  .output-text.empty {
+    color: var(--text-muted); font-style: italic;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  }
+  .output-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .btn-copy {
+    padding: 8px 20px; background: var(--accent); color: #fff;
+    border: none; border-radius: 7px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-copy:hover { background: #234a31; }
+  .btn-copy:active { transform: scale(0.97); }
+  .btn-copy.copied { background: var(--accent2); }
+  .btn-clear {
+    padding: 8px 14px; background: none; color: var(--text-muted);
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+  .other-note {
+    background: #FFF8F0; border: 1.5px solid #F0D9B8;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.8rem; color: #7A5C2E; margin-top: 8px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Comment Builder</h1>
+  <span>英語コメント自動生成</span>
+</header>
+
+<div class="main">
+  <div class="blocks" id="blocks"></div>
+
+  <div class="add-section">
+    <p>＋ コメントタイプを追加</p>
+    <div class="type-grid" id="typeGrid"></div>
+  </div>
+
+  <div class="output-area">
+    <h2>生成された英語コメント</h2>
+    <div class="output-text empty" id="outputText">コメントタイプを追加すると、ここに英語が表示されます</div>
+    <div class="output-actions">
+      <button class="btn-clear" onclick="clearAll()">リセット</button>
+      <button class="btn-copy" id="copyBtn" onclick="copyText()">📋 コピー</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPES = [
+  {
+    id: 'should_be',
+    label: '正しい答えを示す',
+    inputs: [{ key: 'text', label: '正しい答えを入力（日本語可）', placeholder: '例：田中です' }],
+    generate: (v) => v.text ? `The answer should be "${v.text}".` : ''
+  },
+  {
+    id: 'is_better',
+    label: 'より良い表現を示す',
+    inputs: [{ key: 'text', label: 'より良い表現を入力（日本語可）', placeholder: '例：午前10時です' }],
+    generate: (v) => v.text ? `"${v.text}" is better.` : ''
+  },
+  {
+    id: 'better_to_say',
+    label: '〜と言う方が良い',
+    inputs: [{ key: 'text', label: '表現を入力（日本語可）', placeholder: '例：田中です' }],
+    generate: (v) => v.text ? `It is better to say "${v.text}".` : ''
+  },
+  {
+    id: 'unnecessary',
+    label: '不要な部分を指摘',
+    inputs: [{ key: 'text', label: '不要な箇所を入力（日本語可）', placeholder: '例：一方、最も低いのは沖縄県です' }],
+    generate: (v) => v.text ? `The answer contains an unnecessary part "${v.text}".` : ''
+  },
+  {
+    id: 'official_name',
+    label: '正式名称を示す',
+    inputs: [{ key: 'text', label: '正式名称を入力（日本語可）', placeholder: '例：株式会社メルペイ' }],
+    generate: (v) => v.text ? `The official name is "${v.text}".` : ''
+  },
+  {
+    id: 'polite',
+    label: '敬語・文体の問題',
+    inputs: [
+      {
+        key: 'pattern',
+        label: 'パターンを選択',
+        type: 'select',
+        options: [
+          { value: 'prompt_polite_answer_rude', label: 'プロンプトは丁寧なのに回答が失礼' },
+          { value: 'should_answer_politely',    label: '丁寧に答えるべき' },
+          { value: 'mixed_polite_casual',       label: '丁寧体・普通体が混在している' },
+          { value: 'last_sentence_mismatch',    label: '最後の文だけ文体が違う' },
+          { value: 'incorrect_honorific',       label: '敬語表現の誤用（特定箇所）' },
+          { value: 'not_formal',                label: 'フォーマルな文体ではない' },
+          { value: 'desu_masu_mixed',           label: 'です・ます調とだ・である調が混在' },
+        ]
+      }
+    ],
+    subInputs: {
+      'incorrect_honorific': [{ key: 'part', label: '誤用箇所を入力（日本語可）', placeholder: '例：おマグカップ' }]
+    },
+    generate: (v) => {
+      const map = {
+        prompt_polite_answer_rude: 'The prompt is polite, but the answer is impolite.',
+        should_answer_politely:    'It is better to answer politely.',
+        mixed_polite_casual:       'The writing style is inconsistent (polite and casual voices are mixed).',
+        last_sentence_mismatch:    'The last sentence does not match the writing style of the rest.',
+        incorrect_honorific:       v.part ? `Incorrect use of honorific expressions: "${v.part}".` : 'Incorrect use of honorific expressions.',
+        not_formal:                'The response is not written in a formal style.',
+        desu_masu_mixed:           'The tones are inconsistent ("です・ます" and "だ・である" are mixed).',
+      };
+      return map[v.pattern] || '';
+    }
+  },
+  {
+    id: 'unable_confirm',
+    label: '事実確認ができない',
+    inputs: [],
+    generate: () => 'Unable to confirm the factuality.'
+  },
+  {
+    id: 'verified',
+    label: '事実として確認済み',
+    inputs: [],
+    generate: () => 'The fact has been verified.'
+  },
+  {
+    id: 'other',
+    label: 'その他（英語で直接入力）',
+    inputs: [{ key: 'text', label: '英語でコメントを入力', placeholder: 'e.g. The intent of the prompt is hard to understand.' }],
+    generate: (v) => v.text || '',
+    isOther: true
+  },
+];
+
+let blocks = [];
+let nextId = 1;
+
+function init() {
+  const grid = document.getElementById('typeGrid');
+  TYPES.forEach(type => {
+    const btn = document.createElement('button');
+    btn.className = 'type-btn';
+    btn.textContent = type.label;
+    btn.onclick = () => addBlock(type.id);
+    grid.appendChild(btn);
+  });
+}
+
+function addBlock(typeId) {
+  const block = { id: nextId++, typeId, values: {} };
+  // selectの初期値をセット
+  const type = TYPES.find(t => t.id === typeId);
+  type.inputs.forEach(inp => {
+    if (inp.type === 'select') block.values[inp.key] = inp.options[0].value;
+  });
+  blocks.push(block);
+  renderBlocks();
+  updateOutput();
+  setTimeout(() => {
+    const el = document.getElementById('block-' + block.id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+}
+
+function removeBlock(id) {
+  blocks = blocks.filter(b => b.id !== id);
+  renderBlocks();
+  updateOutput();
+}
+
+function renderBlocks() {
+  const container = document.getElementById('blocks');
+  container.innerHTML = '';
+  blocks.forEach((block, idx) => {
+    const type = TYPES.find(t => t.id === block.typeId);
+    const div = document.createElement('div');
+    div.className = 'block';
+    div.id = 'block-' + block.id;
+
+    div.innerHTML = `
+      <div class="block-header">
+        <div class="block-num">${idx + 1}</div>
+        <div class="block-title">${type.label}</div>
+        <button class="block-remove" onclick="removeBlock(${block.id})" title="削除">✕</button>
+      </div>
+    `;
+
+    type.inputs.forEach(input => {
+      const wrap = document.createElement('div');
+      wrap.className = 'input-wrap';
+
+      if (input.type === 'select') {
+        wrap.innerHTML = `<div class="input-label">${input.label}</div>`;
+        const sel = document.createElement('select');
+        input.options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt.value;
+          o.textContent = opt.label;
+          if (block.values[input.key] === opt.value) o.selected = true;
+          sel.appendChild(o);
+        });
+        sel.addEventListener('change', (e) => {
+          block.values[input.key] = e.target.value;
+          renderBlocks();
+          updateOutput();
+        });
+        wrap.appendChild(sel);
+
+        // サブ入力欄
+        const currentVal = block.values[input.key];
+        if (type.subInputs && type.subInputs[currentVal]) {
+          type.subInputs[currentVal].forEach(sub => {
+            const subWrap = document.createElement('div');
+            subWrap.className = 'input-wrap';
+            subWrap.innerHTML = `<div class="input-label">${sub.label}</div>`;
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.placeholder = sub.placeholder || '';
+            inp.value = block.values[sub.key] || '';
+            inp.addEventListener('input', (e) => { block.values[sub.key] = e.target.value; updateOutput(); });
+            subWrap.appendChild(inp);
+            wrap.appendChild(subWrap);
+          });
+        }
+      } else {
+        wrap.innerHTML = `<div class="input-label">${input.label}</div>`;
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.placeholder = input.placeholder || '';
+        inp.value = block.values[input.key] || '';
+        inp.addEventListener('input', (e) => { block.values[input.key] = e.target.value; updateOutput(); });
+        wrap.appendChild(inp);
+      }
+
+      div.appendChild(wrap);
+    });
+
+    if (type.isOther) {
+      const note = document.createElement('div');
+      note.className = 'other-note';
+      note.textContent = '💡 日本語コメントの翻訳はスプレッドシートをご利用ください。翻訳後の英語をここに貼り付けてください。';
+      div.appendChild(note);
+    }
+
+    container.appendChild(div);
+  });
+}
+
+function updateOutput() {
+  const outputEl = document.getElementById('outputText');
+  if (blocks.length === 0) {
+    outputEl.textContent = 'コメントタイプを追加すると、ここに英語が表示されます';
+    outputEl.classList.add('empty');
+    return;
+  }
+  const parts = blocks.map(block => {
+    const type = TYPES.find(t => t.id === block.typeId);
+    try { return type.generate(block.values); } catch(e) { return ''; }
+  }).filter(p => p && p.trim());
+
+  if (parts.length === 0) {
+    outputEl.textContent = '入力欄を埋めてください';
+    outputEl.classList.add('empty');
+  } else {
+    outputEl.textContent = parts.join(' ');
+    outputEl.classList.remove('empty');
+  }
+}
+
+function copyText() {
+  const el = document.getElementById('outputText');
+  if (el.classList.contains('empty')) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ コピーしました';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 コピー'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function clearAll() {
+  blocks = [];
+  renderBlocks();
+  updateOutput();
+}
+
+init();
+</script>
+</body>
+</html>
